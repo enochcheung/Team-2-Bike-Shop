@@ -1,9 +1,12 @@
 package com.enochc.software648.bikeshop;
 
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.model.*;
+
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Random;
+import java.util.*;
 
 public class Generator {
     public static final String DICT_TXT = "dict.txt";
@@ -13,6 +16,11 @@ public class Generator {
             "NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"};
     private static final long START_DATE = 1230786000000L;    // milliseconds corresponding to 2009/1/1
     private static final long DATE_INTERVAL = 189216000000L;  // milliseconds corresponding to 6 years
+
+    private static final int NUM_CUSTOMERS = 100000;
+    private static final int NUM_ORDERS = 10000000;
+    private static final int NUM_BIKES = 100000;
+
 
     private final int dictLength;
     private Random random = new Random();
@@ -147,6 +155,40 @@ public class Generator {
         }
 
         return list;
+    }
+
+    public static void main(String[] args) {
+        Generator generator = new Generator();
+        ArrayList<CustomerData> customerList = generator.generateCustomers(100);
+
+        try {
+            AmazonDynamoDBClient client = new AmazonDynamoDBClient(new ProfileCredentialsProvider());
+
+            String awsTableName = "Customers";
+
+
+            for (CustomerData customerData : customerList) {
+                Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
+                item.put("FirstName", new AttributeValue().withS(customerData.getFirstName()));
+                item.put("LastName", new AttributeValue().withS(customerData.getLastName()));
+                item.put("Address", new AttributeValue().withS(customerData.getAddress()));
+                item.put("City", new AttributeValue().withS(customerData.getCity()));
+                item.put("State", new AttributeValue().withS(customerData.getState()));
+                item.put("Zip", new AttributeValue().withS(customerData.getZip()));
+                item.put("Username", new AttributeValue().withS(customerData.getUsername()));
+                item.put("Password", new AttributeValue().withS(customerData.getPassword()));
+
+
+                PutItemRequest itemRequest = new PutItemRequest().withTableName(awsTableName).withItem(item);
+                client.putItem(itemRequest);
+                item.clear();
+            }
+
+        } catch (AmazonServiceException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 }
