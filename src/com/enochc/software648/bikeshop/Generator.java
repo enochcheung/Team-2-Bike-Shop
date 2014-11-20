@@ -2,6 +2,8 @@ package com.enochc.software648.bikeshop;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.*;
 
@@ -101,6 +103,7 @@ public class Generator {
     private OrderData randomOrder(int n) {
         String num = String.valueOf(n);
 
+        String orderID = num;
         String customerId = String.valueOf(random.nextInt(customerCounter));
         String bikeId = String.valueOf(random.nextInt(bikeCounter));
         int price = 1+random.nextInt(2000);
@@ -110,7 +113,7 @@ public class Generator {
         Date date = new Date(milliseconds);
 
 
-        return new OrderData(customerId,bikeId,quantity,price,date);
+        return new OrderData(orderID, customerId,bikeId,quantity,price,date);
     }
 
 
@@ -160,13 +163,18 @@ public class Generator {
     public static void main(String[] args) {
         Generator generator = new Generator();
         ArrayList<CustomerData> customerList = generator.generateCustomers(100);
+        ArrayList<BikeData> bikeList = generator.generateBikes(100);
+        ArrayList<OrderData> orderList = generator.generateOrders(1000);
+
+
 
         try {
             AmazonDynamoDBClient client = new AmazonDynamoDBClient(new ProfileCredentialsProvider());
+            client.setRegion(Region.getRegion(Regions.US_WEST_2));
+
 
             String awsTableName = "Customers";
-
-
+            /*
             for (CustomerData customerData : customerList) {
                 Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
                 item.put("FirstName", new AttributeValue().withS(customerData.getFirstName()));
@@ -183,6 +191,41 @@ public class Generator {
                 client.putItem(itemRequest);
                 item.clear();
             }
+            */
+
+            awsTableName = "Bikes";
+            for (BikeData bikeData : bikeList) {
+                Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
+                item.put("ModelNumber", new AttributeValue().withS(bikeData.getModelNumber()));
+                item.put("Name", new AttributeValue().withS(bikeData.getName()));
+                item.put("Description", new AttributeValue().withS(bikeData.getDescription()));
+                item.put("Price", new AttributeValue().withN(String.valueOf(bikeData.getPrice())));
+                item.put("Quantity", new AttributeValue().withN(String.valueOf(bikeData.getQuantity())));
+
+
+                PutItemRequest itemRequest = new PutItemRequest().withTableName(awsTableName).withItem(item);
+                client.putItem(itemRequest);
+                item.clear();
+            }
+
+            awsTableName = "Orders";
+            for (OrderData orderData : orderList) {
+                Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
+                item.put("OrderID", new AttributeValue().withS(orderData.getOrderID()));
+                item.put("BikeID", new AttributeValue().withS(orderData.getBikeId()));
+                item.put("CustomerID", new AttributeValue().withS(orderData.getCustomerId()));
+                item.put("Price", new AttributeValue().withN(String.valueOf(orderData.getPrice())));
+                item.put("Quantity", new AttributeValue().withN(String.valueOf(orderData.getQuantity())));
+                item.put("Date", new AttributeValue().withS(orderData.getDate().toString()));
+
+
+
+
+                PutItemRequest itemRequest = new PutItemRequest().withTableName(awsTableName).withItem(item);
+                client.putItem(itemRequest);
+                item.clear();
+            }
+
 
         } catch (AmazonServiceException e) {
             e.printStackTrace();
