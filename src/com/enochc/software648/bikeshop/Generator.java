@@ -8,6 +8,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.*;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Generator {
@@ -166,6 +167,8 @@ public class Generator {
         ArrayList<BikeData> bikeList = generator.generateBikes(100);
         ArrayList<OrderData> orderList = generator.generateOrders(1000);
 
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+
 
 
         try {
@@ -174,7 +177,7 @@ public class Generator {
 
 
             String awsTableName = "Customers";
-            /*
+
             for (CustomerData customerData : customerList) {
                 Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
                 item.put("FirstName", new AttributeValue().withS(customerData.getFirstName()));
@@ -191,7 +194,7 @@ public class Generator {
                 client.putItem(itemRequest);
                 item.clear();
             }
-            */
+            
 
             awsTableName = "Bikes";
             for (BikeData bikeData : bikeList) {
@@ -199,7 +202,7 @@ public class Generator {
                 item.put("ModelNumber", new AttributeValue().withS(bikeData.getModelNumber()));
                 item.put("Name", new AttributeValue().withS(bikeData.getName()));
                 item.put("Description", new AttributeValue().withS(bikeData.getDescription()));
-                item.put("Price", new AttributeValue().withN(String.valueOf(bikeData.getPrice())));
+                item.put("Price", new AttributeValue().withN(String.valueOf(bikeData.getPrice())+".00"));
                 item.put("Quantity", new AttributeValue().withN(String.valueOf(bikeData.getQuantity())));
 
 
@@ -214,9 +217,9 @@ public class Generator {
                 item.put("OrderID", new AttributeValue().withS(orderData.getOrderID()));
                 item.put("BikeID", new AttributeValue().withS(orderData.getBikeId()));
                 item.put("CustomerID", new AttributeValue().withS(orderData.getCustomerId()));
-                item.put("Price", new AttributeValue().withN(String.valueOf(orderData.getPrice())));
+                item.put("Price", new AttributeValue().withN(String.valueOf(orderData.getPrice())+".00"));
                 item.put("Quantity", new AttributeValue().withN(String.valueOf(orderData.getQuantity())));
-                item.put("Date", new AttributeValue().withS(orderData.getDate().toString()));
+                item.put("Date", new AttributeValue().withS(dateFormatter.format(orderData.getDate())));
 
 
 
