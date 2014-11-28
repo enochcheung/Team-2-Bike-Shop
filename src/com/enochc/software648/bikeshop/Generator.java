@@ -19,6 +19,7 @@ public class Generator {
             "NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"};
     private static final long START_DATE = 1230786000000L;    // milliseconds corresponding to 2009/1/1
     private static final long DATE_INTERVAL = 189216000000L;  // milliseconds corresponding to 6 years
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     private static final int NUM_CUSTOMERS = 100000;
     private static final int NUM_ORDERS = 10000000;
@@ -111,7 +112,7 @@ public class Generator {
         int quantity = 1+random.nextInt(2);
 
         long milliseconds = START_DATE+((long) (random.nextDouble()*DATE_INTERVAL));
-        Date date = new Date(milliseconds);
+        String date = DATE_FORMAT.format(new Date(milliseconds));
 
 
         return new OrderData(orderID, customerId,bikeId,quantity,price,date);
@@ -161,13 +162,13 @@ public class Generator {
         return list;
     }
 
+    /*
     public static void main(String[] args) {
         Generator generator = new Generator();
         ArrayList<CustomerData> customerList = generator.generateCustomers(100);
         ArrayList<BikeData> bikeList = generator.generateBikes(100);
         ArrayList<OrderData> orderList = generator.generateOrders(1000);
 
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
 
 
@@ -193,8 +194,10 @@ public class Generator {
                 PutItemRequest itemRequest = new PutItemRequest().withTableName(awsTableName).withItem(item);
                 client.putItem(itemRequest);
                 item.clear();
+
+                System.out.println("Customer: "+customerData.getUsername());
             }
-            
+
 
             awsTableName = "Bikes";
             for (BikeData bikeData : bikeList) {
@@ -202,13 +205,15 @@ public class Generator {
                 item.put("ModelNumber", new AttributeValue().withS(bikeData.getModelNumber()));
                 item.put("Name", new AttributeValue().withS(bikeData.getName()));
                 item.put("Description", new AttributeValue().withS(bikeData.getDescription()));
-                item.put("Price", new AttributeValue().withN(String.valueOf(bikeData.getPrice())+".00"));
+                item.put("Price", new AttributeValue().withN(String.valueOf(bikeData.getPrice())));
                 item.put("Quantity", new AttributeValue().withN(String.valueOf(bikeData.getQuantity())));
 
 
                 PutItemRequest itemRequest = new PutItemRequest().withTableName(awsTableName).withItem(item);
                 client.putItem(itemRequest);
                 item.clear();
+
+                System.out.println("Bike: "+bikeData.getModelNumber());
             }
 
             awsTableName = "Orders";
@@ -217,9 +222,9 @@ public class Generator {
                 item.put("OrderID", new AttributeValue().withS(orderData.getOrderID()));
                 item.put("BikeID", new AttributeValue().withS(orderData.getBikeId()));
                 item.put("CustomerID", new AttributeValue().withS(orderData.getCustomerId()));
-                item.put("Price", new AttributeValue().withN(String.valueOf(orderData.getPrice())+".00"));
+                item.put("Price", new AttributeValue().withN(String.valueOf(orderData.getPrice())));
                 item.put("Quantity", new AttributeValue().withN(String.valueOf(orderData.getQuantity())));
-                item.put("Date", new AttributeValue().withS(dateFormatter.format(orderData.getDate())));
+                item.put("Date", new AttributeValue().withS(orderData.getDate()));
 
 
 
@@ -227,6 +232,8 @@ public class Generator {
                 PutItemRequest itemRequest = new PutItemRequest().withTableName(awsTableName).withItem(item);
                 client.putItem(itemRequest);
                 item.clear();
+
+                System.out.println("Order: "+orderData.getOrderID());
             }
 
 
@@ -236,5 +243,6 @@ public class Generator {
 
 
     }
+    */
 
 }

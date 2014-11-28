@@ -8,9 +8,9 @@ public class OrderData {
     private String bikeId;
     private int quantity;
     private int price;
-    private Date date;
+    private String date;
 
-    public OrderData(String orderID, String customerId, String bikeId, int quantity, int price, Date date) {
+    public OrderData(String orderID, String customerId, String bikeId, int quantity, int price, String date) {
         this.orderID = orderID;
         this.customerId = customerId;
         this.bikeId = bikeId;
@@ -39,7 +39,7 @@ public class OrderData {
         return price;
     }
 
-    public Date getDate() {
+    public String getDate() {
         return date;
     }
 

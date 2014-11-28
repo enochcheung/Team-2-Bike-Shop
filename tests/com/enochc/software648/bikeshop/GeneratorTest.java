@@ -9,7 +9,7 @@ import com.enochc.software648.bikeshop.Generator;
 import java.util.ArrayList;
 
 public class GeneratorTest {
-    Generator generator;
+    private Generator generator;
 
     @Before
     public void setUp() throws Exception {
