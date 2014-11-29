@@ -1,5 +1,8 @@
 package com.enochc.software648.bikeshop;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class BikeData {
     private String modelNumber;
     private String name;
@@ -7,7 +10,10 @@ public class BikeData {
     private int price;
     private int quantity;
 
-    public BikeData(String modelNumber, String name, String description, int price, int quantity) {
+    @JsonCreator
+    public BikeData(@JsonProperty("modelNumber") String modelNumber,@JsonProperty("name") String name,
+                    @JsonProperty("description")String description,@JsonProperty("price") int price,
+                    @JsonProperty("quantity")int quantity) {
         this.modelNumber = modelNumber;
         this.name = name;
         this.description = description;

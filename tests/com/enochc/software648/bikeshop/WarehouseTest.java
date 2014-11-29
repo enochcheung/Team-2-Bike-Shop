@@ -17,7 +17,7 @@ public class WarehouseTest {
 
     @Test
     public void testGetBikes(){
-        ArrayList<BikeData> bikeList = warehouse.readBikes(0, 5);
+        ArrayList<BikeData> bikeList = warehouse.getBikes(0, 5);
 
         System.out.println(bikeList);
 
