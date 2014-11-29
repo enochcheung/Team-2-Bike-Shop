@@ -1,5 +1,8 @@
 package com.enochc.software648.bikeshop;
 
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
 import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
@@ -17,7 +20,8 @@ public class Warehouse {
     private final AmazonDynamoDBClient client;
 
     public Warehouse() {
-        client = new AmazonDynamoDBClient(new EnvironmentVariableCredentialsProvider());
+        // client = new AmazonDynamoDBClient(new BasicAWSCredentials("AKIAJ7TJBZCLQSSNXVOA", "qvNcBpYrgJYrhQh/CmLTlN0lESB/3hB5iZe+1Ibz"));
+        client = new AmazonDynamoDBClient(new ClasspathPropertiesFileCredentialsProvider());
         client.setRegion(Region.getRegion(Regions.US_WEST_2));
 
     }
@@ -34,8 +38,10 @@ public class Warehouse {
 
         for (int i = start; i < end; i++) {
             String modelNumber = String.valueOf(i);
-
-            list.add(this.getBike(modelNumber));
+            BikeData bikeData = this.getBike(modelNumber);
+            if (bikeData != null) {
+                list.add(bikeData);
+            }
         }
 
         return list;
@@ -44,6 +50,7 @@ public class Warehouse {
 
     /**
      * Returns bike matching modelNumber. Null if not found.
+     *
      * @param modelNumber
      * @return
      */
@@ -82,6 +89,56 @@ public class Warehouse {
         BikeData bike = new BikeData(modelNumber, bikeName, description, price, quantity);
 
         return bike;
+    }
+
+    public String orderBike(String modelNumber, int quantity, String orderID) {
+        BikeData bikeData = this.getBike(modelNumber);
+
+        // check if model number is valid
+        if (bikeData == null) {
+            return "not found";
+        }
+
+        // check if sufficient stock
+        if (bikeData.getQuantity() < quantity) {
+            return "insufficient";
+        }
+
+
+        // update inventory
+        try {
+            HashMap<String, AttributeValue> key = new HashMap<String, AttributeValue>();
+            key.put("ModelNumber", new AttributeValue().withS(modelNumber));
+
+            Map<String, AttributeValue> expressionAttributeValues = new HashMap<String, AttributeValue>();
+            expressionAttributeValues.put(":val1", new AttributeValue().withN(String.valueOf(quantity)));
+
+            ReturnValue returnValues = ReturnValue.NONE;
+
+            UpdateItemRequest updateItemRequest = new UpdateItemRequest()
+                    .withTableName(TABLE_NAME)
+                    .withKey(key)
+                    .withUpdateExpression("set Quantity = Quantity - :val1")
+                    .withConditionExpression("Quantity >= :val1")
+                    .withExpressionAttributeValues(expressionAttributeValues)
+                    .withReturnValues(returnValues);
+
+            UpdateItemResult result = client.updateItem(updateItemRequest);
+
+            // Order successfully placed, otherwise errors would be thrown
+            //TODO: do something to complete the order after random delay
+
+            return String.valueOf(bikeData.getPrice());
+        } catch (ConditionalCheckFailedException cse) {
+            // Condition not met, meaning insufficent stock.
+            cse.printStackTrace();
+            return "insufficient";
+        } catch (AmazonServiceException ase) {
+            ase.printStackTrace();
+            return "not found";
+        }
+
+
     }
 
 

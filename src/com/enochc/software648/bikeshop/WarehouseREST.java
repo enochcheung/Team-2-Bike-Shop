@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import javax.ws.rs.*;
 import java.util.ArrayList;
+import java.util.Map;
 
 @Path("/warehouse")
 public class WarehouseREST {
@@ -69,10 +70,41 @@ public class WarehouseREST {
     }
 
     @GET
+    @Path("/order")
+    @Produces("text/html")
+    public String orderBikes(@QueryParam("orderID") String orderID, @QueryParam("modelNumber") String modelNumber,
+                           @QueryParam("quantity") String quantity) {
+        init();
+
+        if (quantity==null || orderID==null || modelNumber == null) {
+            throw new WebApplicationException(404);
+        }
+
+        int quantityInt = 0;
+        try {
+            quantityInt = Integer.parseInt(quantity);
+        } catch (NumberFormatException e) {
+            throw new WebApplicationException(404);
+        }
+
+        if (quantityInt <= 0) {
+            throw new WebApplicationException(404);
+        }
+
+        return warehouse.orderBike(modelNumber,quantityInt,orderID);
+    }
+
+    @GET
     @Path("/hello")
     @Produces("text/html")
     public String hello() {
-        return "hello";
+        StringBuilder sb = new StringBuilder();
+        Map<String, String> env = System.getenv();
+        for (Map.Entry<String,String> entry : env.entrySet()) {
+            sb.append(entry.getKey()+" : "+entry.getValue()+"\n");
+        }
+        return sb.toString();
     }
+
 
 }
