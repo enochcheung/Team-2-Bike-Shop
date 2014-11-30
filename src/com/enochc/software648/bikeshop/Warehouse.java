@@ -20,7 +20,6 @@ public class Warehouse {
     private final AmazonDynamoDBClient client;
 
     public Warehouse() {
-        // client = new AmazonDynamoDBClient(new BasicAWSCredentials("AKIAJ7TJBZCLQSSNXVOA", "qvNcBpYrgJYrhQh/CmLTlN0lESB/3hB5iZe+1Ibz"));
         client = new AmazonDynamoDBClient(new ClasspathPropertiesFileCredentialsProvider());
         client.setRegion(Region.getRegion(Regions.US_WEST_2));
 
